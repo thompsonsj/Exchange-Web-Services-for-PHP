@@ -1,0 +1,14 @@
+{
+    "name": "thompsonsj/exchange-web-services-for-php",
+    "description": "A basic library for interacting with Exchange Web Services using PHP 5",
+    "require": {
+        "php": ">=5.4.0",
+        "ext-curl": "*",
+        "ext-SimpleXML": "*"
+    },
+    "autoload": {
+    	"psr-4": {
+      	"ExchangeClient\\": "src"
+    	}
+  }
+}

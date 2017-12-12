@@ -1,5 +1,7 @@
 <?php
 
+namespace ExchangeClient;
+
 /*
  * Copyright (c) 2008 Invest-In-France Agency http://www.invest-in-france.org
  *

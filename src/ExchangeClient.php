@@ -1,5 +1,11 @@
 <?php
 
+namespace ExchangeClient;
+
+use \Exception;
+use \SoapHeader;
+use \stdClass;
+
 /**
  * Exchangeclient class.
  *
@@ -92,37 +98,51 @@ class ExchangeClient {
     public function get_events($start, $end) {
         $this->setup();
 
+        $FindItem = new stdClass();
         $FindItem->Traversal = "Shallow";
+        $FindItem->ItemShape = new stdClass();
         $FindItem->ItemShape->BaseShape = "IdOnly";
+        $FindItem->ParentFolderIds = new stdClass();
+        $FindItem->ParentFolderIds->DistinguishedFolderId = new stdClass();
         $FindItem->ParentFolderIds->DistinguishedFolderId->Id = "calendar";
 
         if($this->delegate != NULL) {
+            $FindItem->ParentFolderIds->DistinguishedFolderId->Mailbox = new stdClass();
             $FindItem->ParentFolderIds->DistinguishedFolderId->Mailbox->EmailAddress = $this->delegate;
         }
 
+        $FindItem->CalendarView = new stdClass();
         $FindItem->CalendarView->StartDate = $start;
         $FindItem->CalendarView->EndDate = $end;
 
         $response = $this->client->FindItem($FindItem);
+
+        if ( !$response ) {
+            return false;
+        }
 
         if($response->ResponseMessages->FindItemResponseMessage->ResponseCode != "NoError") {
             $this->lastError = $response->ResponseMessages->FindItemResponseMessage->ResponseCode;
             return false;
         }
 
-        $items = $response->ResponseMessages->FindItemResponseMessage->RootFolder->Items->CalendarItem;
+        if ( isset( $response->ResponseMessages->FindItemResponseMessage->RootFolder->Items->CalendarItem ) ) {
+            $items = $response->ResponseMessages->FindItemResponseMessage->RootFolder->Items->CalendarItem;
+        } else {
+            return false; //we didn't get anything back!
+        }
 
         $i = 0;
         $events = array();
-
-        if(count($items) == 0)
-            return false; //we didn't get anything back!
 
         if(!is_array($items)) //if we only returned one event, then it doesn't send it as an array, just as a single object. so put it into an array so that everything works as expected.
             $items = array($items);
 
         foreach($items as $item) {
+            $GetItem = new stdClass();
+            $GetItem->ItemShape = new stdClass();
             $GetItem->ItemShape->BaseShape = "Default";
+            $GetItem->ItemIds = new stdClass();
             $GetItem->ItemIds->ItemId = $item->ItemId;
             $response = $this->client->GetItem($GetItem);
 
@@ -133,7 +153,7 @@ class ExchangeClient {
 
             $eventobj = $response->ResponseMessages->GetItemResponseMessage->Items->CalendarItem;
 
-            $newevent = null;
+            $newevent = new stdClass();
             $newevent->id = $eventobj->ItemId->Id;
             $newevent->changekey = $eventobj->ItemId->ChangeKey;
             $newevent->subject = $eventobj->Subject;
@@ -141,7 +161,7 @@ class ExchangeClient {
             $newevent->end = strtotime($eventobj->End);
             $newevent->location = $eventobj->Location;
 
-            $organizer = null;
+            $organizer = new stdClass();
             $organizer->name = $eventobj->Organizer->Mailbox->Name;
             $organizer->email = $eventobj->Organizer->Mailbox->EmailAddress;
 
@@ -152,7 +172,7 @@ class ExchangeClient {
                 $required = array($required);
 
             foreach($required as $r) {
-                $o = null;
+                $o = new stdClass();
                 $o->name = $r->Mailbox->Name;
                 $o->email = $r->Mailbox->EmailAddress;
                 $people[] = $o;
@@ -702,11 +722,11 @@ class ExchangeClient {
         stream_wrapper_unregister('http');
         stream_wrapper_unregister('https');
 
-        if(!stream_wrapper_register('http', 'ExchangeNTLMStream')) {
+        if(!stream_wrapper_register('http', '\ExchangeClient\ExchangeNTLMStream')) {
             throw new Exception("Failed to register protocol");
         }
 
-        if(!stream_wrapper_register('https', 'ExchangeNTLMStream')) {
+        if(!stream_wrapper_register('https', '\ExchangeClient\ExchangeNTLMStream')) {
             throw new Exception("Failed to register protocol");
         }
     }

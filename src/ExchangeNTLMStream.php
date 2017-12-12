@@ -1,7 +1,11 @@
 <?php
 
+namespace ExchangeClient;
+
+use \SimpleXMLElement;
+
 class ExchangeNTLMStream extends NTLMStream {
-  protected function createBuffer($path) { 
+  protected function createBuffer($path) {
     parent::createBuffer($path);
 
     if (!preg_match('#Services\.wsdl$#', $path))
@@ -14,7 +18,7 @@ class ExchangeNTLMStream extends NTLMStream {
 
     $service = $xml->addChild('wsdl:service');
     $service->addAttribute('name', 'ExchangeServices');
-    
+
     $port = $service->addChild('wsdl:port');
     $port->addAttribute('name', 'ExchangeServicePort');
     $port->addAttribute('binding', 'tns:ExchangeServiceBinding');
@@ -25,4 +29,3 @@ class ExchangeNTLMStream extends NTLMStream {
     $this->buffer = str_replace('xmlns:soap="soap" ', '', $xml->asXML());
   }
 }
-

@@ -159,7 +159,10 @@ class ExchangeClient {
             $newevent->subject = $eventobj->Subject;
             $newevent->start = strtotime($eventobj->Start);
             $newevent->end = strtotime($eventobj->End);
-            $newevent->location = $eventobj->Location;
+            $newevent->location = null;
+            if ( isset( $eventobj->Location ) ) {
+              $newevent->location = $eventobj->Location;
+            }
 
             $organizer = new stdClass();
             $organizer->name = $eventobj->Organizer->Mailbox->Name;

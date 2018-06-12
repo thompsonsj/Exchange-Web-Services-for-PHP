@@ -58,7 +58,7 @@ class ExchangeClient {
   }
 
   /**
-   * Create an event in the user's calendar. Does not currently support sending invitations to other users. Times must be passed as ISO date format.
+   * Create an event in the user's calendar. Times must be passed as ISO date format.
    *
    * @access public
    * @param string $subject
@@ -66,24 +66,41 @@ class ExchangeClient {
    * @param string $end (ISO date format)
    * @param string $location
    * @param bool $isallday. (default: false)
+   * @param string $organiser Email address of organiser.
+   * @param bool $sendinvites Falg to indicate whther to send invitations.
    * @return bool $success (true if the message was created, false if there was an error)
    */
-  public function create_event($subject, $start, $end, $location, $isallday = false) {
+  public function create_event($subject, $start, $end, $location, $isallday = false, $organiser = NULL, $sendinvites = true ) {
     $this->setup();
 
-    $CreateItem->SendMeetingInvitations = "SendToNone";
-    $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = "calendar";
-    if($this->delegate != NULL) {
-      $FindItem->SavedItemFolderId->DistinguishedFolderId->Mailbox->EmailAddress = $this->delegate;
-    }
-    $CreateItem->Items->CalendarItem->Subject = $subject;
-    $CreateItem->Items->CalendarItem->Start = $start; #e.g. "2010-09-21T16:00:00Z"; # ISO date format. Z denotes UTC time
-    $CreateItem->Items->CalendarItem->End = $end;
-    $CreateItem->Items->CalendarItem->IsAllDayEvent = $isallday;
-    $CreateItem->Items->CalendarItem->LegacyFreeBusyStatus = "Busy";
-    $CreateItem->Items->CalendarItem->Location = $location;
+    $CalendarItem = array(
+      'Subject' => $subject,
+      'Start' => $start,
+      'End' => $end,
+      'IsAllDayEvent' => $isallday,
+      'LegacyFreeBusyStatus' => "Busy",
+      'Location' => $location
+    );
 
-    $response = $this->client->CreateItem($CreateItem);
+    $CreateItem = array(
+      'SendMeetingInvitations' => "SendToNone",
+      'SavedItemFolderId' => array(
+        'DistinguishedFolderId' => array(
+          'Id' => "calendar"
+        )
+      ),
+      'Items' => array(
+        'CalendarItem' => $CalendarItem
+      )
+    );
+    
+    if( $organiser != NULL) {
+      $CreateItem['ParentFolderId']['DistinguishedFolderId']['Mailbox'] = array(
+        'EmailAddress' => $organiser
+      );
+    }
+
+    $response = $this->client->CreateItem( $this->arrayToObject( $CreateItem ) );
 
     $this->teardown();
 

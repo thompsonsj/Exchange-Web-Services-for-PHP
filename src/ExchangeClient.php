@@ -196,10 +196,13 @@ class ExchangeClient {
       $organizer->email = $eventobj->Organizer->Mailbox->EmailAddress;
 
       $people = array();
-      $required = $eventobj->RequiredAttendees->Attendee;
-
-      if(!is_array($required))
-        $required = array($required);
+      $required = array();
+      if(isset($eventobj->RequiredAttendees->Attendee)) {
+      	$required = $eventobj->RequiredAttendees->Attendee;
+        if(!is_array($required)) {
+          $required = array($required);
+        }
+      }
 
       foreach($required as $r) {
         $o = new stdClass();

@@ -51,7 +51,8 @@ class ExchangeClient {
       'trace' => 1,
       'exceptions' => true,
       'login' => $user,
-      'password' => $pass
+      'password' => $pass,
+      'exceptions' => true
     ));
 
     $this->teardown();
@@ -93,7 +94,7 @@ class ExchangeClient {
         'CalendarItem' => $CalendarItem
       )
     );
-    
+
     if( $organiser != NULL) {
       $CreateItem['ParentFolderId']['DistinguishedFolderId']['Mailbox'] = array(
         'EmailAddress' => $organiser

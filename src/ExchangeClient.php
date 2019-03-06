@@ -143,6 +143,10 @@ class ExchangeClient
 
         $response = $this->client->FindItem($this->arrayToObject($FindItem));
 
+        if (!$response) {
+            return false;
+        }
+
         if ($this->setLastError($response, $response->ResponseMessages->FindItemResponseMessage->ResponseCode)) {
             return false;
         }

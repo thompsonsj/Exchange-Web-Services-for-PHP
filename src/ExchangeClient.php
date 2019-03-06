@@ -175,20 +175,13 @@ class ExchangeClient
             );
             $response = $this->client->GetItem($this->arrayToObject($GetItem));
 
-            /*$GetItem = new stdClass();
-            $GetItem->ItemShape = new stdClass();
-            $GetItem->ItemShape->BaseShape = "Default";
-            $GetItem->ItemIds = new stdClass();
-            $GetItem->ItemIds->ItemId = $item->ItemId;
-            $response = $this->client->GetItem($GetItem);*/
+            if (!$response) {
+                return false;
+            }
 
             if ($this->setLastError($response, $response->ResponseMessages->GetItemResponseMessage->ResponseCode)) {
                 return false;
             }
-            /*if($response->ResponseMessages->GetItemResponseMessage->ResponseCode != "NoError") {
-              $this->lastError = $response->ResponseMessages->GetItemResponseMessage->ResponseCode;
-              return false;
-            }*/
 
             $eventobj = $response->ResponseMessages->GetItemResponseMessage->Items->CalendarItem;
 
